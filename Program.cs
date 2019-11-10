@@ -8,9 +8,9 @@ namespace aLife
     {
         public static int SIZE_WORLD = 10; //rozmiar świata - NIE ZMIENIAĆ
         public static int NUM_TACT = 100; //całkowita liczba taktów
-        public static int VEW_NUM_TACT = 10; //co ile taktów wyświetla wyniki
-        public static int START_NUM_CREEPERS = 500; //początkowa liczba pełzaczy
-        public static int START_NUM_BACT = 500; //początkowa liczba bakterii
+        public static int VEW_NUM_TACT = 5; //co ile taktów wyświetla wyniki
+        public static int START_NUM_CREEPERS = 2000; //początkowa liczba pełzaczy
+        public static int START_NUM_BACT = 2000; //początkowa liczba bakterii
         public static int CREEPER_ENERGY_PRO_LIFE = 1;  //ilość energii potrzebna do urodzenia nowego pełzacza
         public static int CREEPER_INITIAL_ENERGY = 1; //zapas eneergii nowo urodzonego pełzacza
         public static int CREEPER_ENERGY_RESERVE = 4; //rezerwa energii zostawiana podczas rodzenia nowego pełzacza
@@ -25,10 +25,10 @@ namespace aLife
 
         public static int MAX_BACT_EATEN_BY_CREEPER = 15; //Maksymalna liczba bakterii zjadanych przez pełzacza
                                                          //w jednym takcie
-        public static double BACT_MULTIPLICATION_RATE = 0.8; //współczynnik rozmnażania bakterii - tyle nowych bakterii
+        public static double BACT_MULTIPLICATION_RATE = 0.6; //współczynnik rozmnażania bakterii - tyle nowych bakterii
                                                             //powstaje z jednej backterii w każdym takcie.
                                                             //MOŻE PRZYJMOWAĆ WARTOŚCI UŁAMKOWE.
-        public static double BACT_SPREAD_RATE = 0.5; //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
+        public static double BACT_SPREAD_RATE = 0.4; //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
                                                     //DOPUSZCZALNY ZAKRES: od 0 do 1
                                                     //Np. przy wsp. = 0.7, 70% zostaje w komórce,
                                                     //w której się urodziła, a 30% przenosi się

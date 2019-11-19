@@ -53,9 +53,9 @@ namespace aLife
             int jPos;
             while (allNumBact < bactNumToSow)
             {
-                iPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
-                jPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
-                randomNumBact = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
+                iPos = new Random().Next(0, Init.SIZE_WORLD);
+                jPos = new Random().Next(0, Init.SIZE_WORLD);
+                randomNumBact = new Random().Next(0, Init.SIZE_WORLD);
                 board[iPos, jPos].addBactNum(randomNumBact);
                 allNumBact += randomNumBact;
             }
@@ -70,8 +70,8 @@ namespace aLife
             int jPos;
             while (actualNumCreep < creepersNumToSow)
             {
-                iPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
-                jPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
+                iPos = new Random().Next(0, Init.SIZE_WORLD);
+                jPos = new Random().Next(0, Init.SIZE_WORLD);
                 board[iPos, jPos].creepers.Add(new Creeper(iPos, jPos));
                 actualNumCreep++;
             }
@@ -96,8 +96,8 @@ namespace aLife
             // z prawdopodobieństwem 50%)
             while (numCellules < allCellules)
             {
-                iPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
-                jPos = (int)(new Random().NextDouble() * 100) / Init.SIZE_WORLD;
+                iPos = new Random().Next(0, Init.SIZE_WORLD);
+                jPos = new Random().Next(0, Init.SIZE_WORLD);
                 Cellule cell = w.board[iPos, jPos];
 
                 if (!cell.getOld())

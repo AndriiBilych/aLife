@@ -1,6 +1,11 @@
-﻿using java.lang;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using java.lang;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace aLife
 {
@@ -8,7 +13,7 @@ namespace aLife
     {
         public static int SIZE_WORLD = 10; //rozmiar świata - NIE ZMIENIAĆ
         public static int NUM_TACT = 100; //całkowita liczba taktów
-        public static int VEW_NUM_TACT = 5; //co ile taktów wyświetla wyniki
+        public static int VEW_NUM_TACT = 1; //co ile taktów wyświetla wyniki
         public static int START_NUM_CREEPERS = 2000; //początkowa liczba pełzaczy
         public static int START_NUM_BACT = 2000; //początkowa liczba bakterii
         public static int CREEPER_ENERGY_PRO_LIFE = 1;  //ilość energii potrzebna do urodzenia nowego pełzacza
@@ -73,6 +78,16 @@ namespace aLife
         //powyżej kolekcje pomocnicze do zapamiętania liczby bakterii
         //i pełzaczy w każdym takcie, celem późniejszego wyświetlenia
 
+        static readonly string[] Scopes = { SheetsService.Scope.Spreadsheets };
+
+        static readonly string ApplicationName = "aLife";
+
+        static readonly string SpreadsheetId = "1ZZ5zZkgYlniNOsYBLtw1idzzabBmWU16oazJePBSURA";
+
+        static readonly string sheet = "Sheet2";
+
+        static SheetsService service;
+
         private static void bacteriaTest(World w)
         {
             //wyświetla konsolowo liczbę bakterii w danym takcie
@@ -99,21 +114,6 @@ namespace aLife
                 }
                 Console.WriteLine();
             }
-        }
-
-        private static void mainTest(World w)
-        {
-            //wyświetla konsolowo w układzie tablicy
-            //liczbę bakterii i pełzaczy w danym takcie
-            for (int i = 0; i < Init.SIZE_WORLD; i++)
-            {
-                for (int j = 0; j < Init.SIZE_WORLD; j++)
-                {
-                    Console.Write(w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum() + "\t");
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
         }
 
         private static int totalNum(World w, string what)
@@ -146,10 +146,112 @@ namespace aLife
             }
         }
 
+        public static double RandomNumberBetween(double minValue, double maxValue)
+        {
+            var next = new Random().NextDouble();
+
+            return minValue + (next * (maxValue - minValue));
+        }
+
+        private static List<IList<object>> WorldData(World w)
+        {
+            var oblist = new List<object>();
+            List<IList<object>> values = new List<IList<object>>();
+
+            //wyświetla konsolowo w układzie tablicy
+            //liczbę bakterii i pełzaczy w danym takcie
+            for (int i = 0; i < Init.SIZE_WORLD; i++)
+            {
+                oblist.Clear();
+                oblist.TrimExcess();
+
+                for (int j = 0; j < Init.SIZE_WORLD; j++)
+                {
+                    Console.Write(w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum() + "\t");
+
+                    oblist.Add(w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum());
+                }
+                Console.WriteLine();
+
+                values.Add(new List<object>(oblist));
+
+            }
+            Console.WriteLine();
+
+            return values;
+        }
+
+        static void ReadEntries()
+        {
+            var range = $"{sheet}!A:F";
+            SpreadsheetsResource.ValuesResource.GetRequest request =
+                    service.Spreadsheets.Values.Get(SpreadsheetId, range);
+
+            var response = request.Execute();
+            IList<IList<object>> values = response.Values;
+            if (values != null && values.Count > 0)
+            {
+                foreach (var row in values)
+                {
+                    // Print columns A to F, which correspond to indices 0 and 4.
+                    Console.WriteLine("{0} | {1} | {2} | {3} | {4} | {5}", row[0], row[1], row[2], row[3], row[4], row[5]);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No data found.");
+            }
+        }
+
+        static void CreateEntry(List<IList<object>> values, string sheetRange)
+        {
+            var range = $"{sheet}!" + sheetRange;
+            var valueRange = new ValueRange();
+
+            valueRange.Values = values;
+
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, range);
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            var appendReponse = appendRequest.Execute();
+        }
+
+        static void UpdateEntry(List<IList<object>> values)
+        {
+            var range = $"{sheet}!A1:J10";
+            var valueRange = new ValueRange();
+            
+            valueRange.Values = values;
+
+            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            var updateReponse = updateRequest.Execute();
+        }
+
+        static void DeleteEntry()
+        {
+            var range = $"{sheet}!A1:J1500";
+            var requestBody = new ClearValuesRequest();
+
+            var deleteRequest = service.Spreadsheets.Values.Clear(requestBody, SpreadsheetId, range);
+            var deleteReponse = deleteRequest.Execute();
+        }
+
         public static void Main(string[] args)
         {
 
-            Console.WriteLine(new Random().NextDouble());
+            GoogleCredential credential;
+            using (var stream = new FileStream("aLife-5238216c8adf.json", FileMode.Open, FileAccess.Read))
+            {
+                credential = GoogleCredential.FromStream(stream)
+                    .CreateScoped(Scopes);
+            }
+
+            // Create Google Sheets API service.
+            service = new SheetsService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
 
             World mainWorld = new World();
             World tempWorld; // dodatkowy świat potrzebny czasowo w trakcie creepersAndBacteriaAction
@@ -160,6 +262,8 @@ namespace aLife
                              // bakterie i pełzacze z tempWorld są dodawane do odpowiednich komórek mainWorld.
                              // Przed każdym creepersAndBacteriaAction wykonywanym dla wszystkich komórek mainWorld,
                              // tworzony jest nowy, pusty tempWorld.
+
+            List<IList<object>> valuesForParsing = new List<IList<object>>(); //Data for parsing to spreadsheets
 
             //--------------------------------------------------------
             //kod do testowania - nie używany w standardowej symulacji
@@ -178,8 +282,11 @@ namespace aLife
             mainWorld.sowCreepers(Init.START_NUM_CREEPERS);
             int numTact = 0, num, totalBactNum;
 
+            DeleteEntry();
+
             Console.WriteLine("Stan początkowy");
-            mainTest(mainWorld);
+            valuesForParsing.Add(new List<object> { "Stan początkowy" });
+            valuesForParsing.AddRange(WorldData(mainWorld));
 
             totallyCreepers.Add(totalNum(mainWorld, "CREEPERS"));
             totallyBacteria.Add(totalNum(mainWorld, "BACTERIA"));
@@ -203,26 +310,41 @@ namespace aLife
                     numTact++;
                 }
                 Console.WriteLine("Przebieg " + numTact);
-                mainTest(mainWorld);
+                valuesForParsing.Add(new List<object> { "Przebieg " + numTact });
+                valuesForParsing.AddRange(WorldData(mainWorld));
             }
 
+            //Parsing runs
+            CreateEntry(valuesForParsing, "A:J");
+
+            valuesForParsing.Clear();
+
+            string consoleOutput;
             Console.WriteLine();
             Console.WriteLine("---------------------------------------");
-            Console.WriteLine("Bacterias");
+            consoleOutput = "Bacterias\tCreepers";
+            valuesForParsing.Add(new List<object> { "Bacterias", "Creepers" });
             for (int i = 0; i < totallyCreepers.Count; i++)
             {
-                Console.WriteLine(totallyBacteria[i]);
-                //System.out.println(i + "  " + totallyCreepers.get(i) + "  " + totallyBacteria.get(i));
+                consoleOutput += "\n" + totallyBacteria[i] + "\t\t" + totallyCreepers[i];
+                valuesForParsing.Add(new List<object> { totallyBacteria[i], totallyCreepers[i] });
             }
-            Console.WriteLine("Creepers");
-            for (int i = 0; i < totallyCreepers.Count; i++)
+
+            Console.WriteLine(consoleOutput);
+
+            CreateEntry(valuesForParsing, "K:L");
+
+            if (prematureEndOfSimulation)
             {
-                Console.WriteLine(totallyCreepers[i]);
-                //System.out.println(i + "  " + totallyCreepers.get(i) + "  " + totallyBacteria.get(i));
+                Console.WriteLine("Sumaryczna liczba bakterii przekroczyła "
+                      + Init.BACT_NUM_LIMIT
+                      + " - komórki umierają/koniec symulacji.");
+                valuesForParsing.Add(new List<object> { "Sumaryczna liczba bakterii przekroczyła "
+                      + Init.BACT_NUM_LIMIT
+                      + " - komórki umierają/koniec symulacji." });
             }
-            if (prematureEndOfSimulation) Console.WriteLine("Sumaryczna liczba bakterii przekroczyła " + Init.BACT_NUM_LIMIT
-                    + " - komórki umierają/koniec symulacji.");
             Console.WriteLine();
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using Newtonsoft.Json;
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
@@ -30,10 +31,10 @@ namespace aLife
 
         public static int MAX_BACT_EATEN_BY_CREEPER = 15; //Maksymalna liczba bakterii zjadanych przez pełzacza
                                                          //w jednym takcie
-        public static double BACT_MULTIPLICATION_RATE = 0.6; //współczynnik rozmnażania bakterii - tyle nowych bakterii
+        public static double BACT_MULTIPLICATION_RATE = 0.6;//0.8 //współczynnik rozmnażania bakterii - tyle nowych bakterii
                                                             //powstaje z jednej backterii w każdym takcie.
                                                             //MOŻE PRZYJMOWAĆ WARTOŚCI UŁAMKOWE.
-        public static double BACT_SPREAD_RATE = 0.4; //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
+        public static double BACT_SPREAD_RATE = 0.4;//0.5 //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
                                                     //DOPUSZCZALNY ZAKRES: od 0 do 1
                                                     //Np. przy wsp. = 0.7, 70% zostaje w komórce,
                                                     //w której się urodziła, a 30% przenosi się
@@ -87,6 +88,8 @@ namespace aLife
         static readonly string sheet = "Sheet2";
 
         static SheetsService service;
+
+        static string worldData = "";
 
         private static void bacteriaTest(World w)
         {
@@ -167,41 +170,40 @@ namespace aLife
 
                 for (int j = 0; j < Init.SIZE_WORLD; j++)
                 {
-                    Console.Write(w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum() + "\t");
+                    worldData += w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum() + "\t";
 
                     oblist.Add(w.board[i, j].getBactNum() + " | " + w.board[i, j].getCreepersNum());
                 }
-                Console.WriteLine();
-
+                worldData += "\n";
                 values.Add(new List<object>(oblist));
 
             }
-            Console.WriteLine();
+            worldData += "\n";
 
             return values;
         }
 
-        static void ReadEntries()
-        {
-            var range = $"{sheet}!A:F";
-            SpreadsheetsResource.ValuesResource.GetRequest request =
-                    service.Spreadsheets.Values.Get(SpreadsheetId, range);
+        //Test function
+        //static void ReadEntries()
+        //{
+        //    var range = $"{sheet}!A:F";
+        //    SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
 
-            var response = request.Execute();
-            IList<IList<object>> values = response.Values;
-            if (values != null && values.Count > 0)
-            {
-                foreach (var row in values)
-                {
-                    // Print columns A to F, which correspond to indices 0 and 4.
-                    Console.WriteLine("{0} | {1} | {2} | {3} | {4} | {5}", row[0], row[1], row[2], row[3], row[4], row[5]);
-                }
-            }
-            else
-            {
-                Console.WriteLine("No data found.");
-            }
-        }
+        //    var response = request.Execute();
+        //    IList<IList<object>> values = response.Values;
+        //    if (values != null && values.Count > 0)
+        //    {
+        //        foreach (var row in values)
+        //        {
+        //            // Print columns A to F, which correspond to indices 0 and 4.
+        //            Console.WriteLine("{0} | {1} | {2} | {3} | {4} | {5}", row[0], row[1], row[2], row[3], row[4], row[5]);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("No data found.");
+        //    }
+        //}
 
         static void CreateEntry(List<IList<object>> values, string sheetRange)
         {
@@ -217,22 +219,18 @@ namespace aLife
 
         static void UpdateEntry(List<IList<object>> values)
         {
-            var range = $"{sheet}!A1:J10";
             var valueRange = new ValueRange();
             
             valueRange.Values = values;
 
-            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, $"{sheet}!A1:J10");
             updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
             var updateReponse = updateRequest.Execute();
         }
 
         static void DeleteEntry()
         {
-            var range = $"{sheet}!A1:J1500";
-            var requestBody = new ClearValuesRequest();
-
-            var deleteRequest = service.Spreadsheets.Values.Clear(requestBody, SpreadsheetId, range);
+            var deleteRequest = service.Spreadsheets.Values.Clear(new ClearValuesRequest(), SpreadsheetId, $"{sheet}!A1:M1500");
             var deleteReponse = deleteRequest.Execute();
         }
 
@@ -284,7 +282,7 @@ namespace aLife
 
             DeleteEntry();
 
-            Console.WriteLine("Stan początkowy");
+            worldData += "Stan początkowy\n";
             valuesForParsing.Add(new List<object> { "Stan początkowy" });
             valuesForParsing.AddRange(WorldData(mainWorld));
 
@@ -309,10 +307,12 @@ namespace aLife
                     num++;
                     numTact++;
                 }
-                Console.WriteLine("Przebieg " + numTact);
-                valuesForParsing.Add(new List<object> { "Przebieg " + numTact });
+                worldData += "Przebieg " + numTact + "\t\t" + "Bacteria | Creepers\n";
+                valuesForParsing.Add(new List<object> { "Przebieg " + numTact , "Bacteria | Creepers" });
                 valuesForParsing.AddRange(WorldData(mainWorld));
             }
+
+            Console.WriteLine(worldData);
 
             //Parsing runs
             CreateEntry(valuesForParsing, "A:J");
@@ -320,14 +320,17 @@ namespace aLife
             valuesForParsing.Clear();
 
             string consoleOutput;
-            Console.WriteLine();
+
+            
             Console.WriteLine("---------------------------------------");
-            consoleOutput = "Bacterias\tCreepers";
-            valuesForParsing.Add(new List<object> { "Bacterias", "Creepers" });
+
+            consoleOutput = "Run\tBacterias\tCreepers";
+            valuesForParsing.Add(new List<object> { "Run", "Bacterias", "Creepers" });
+
             for (int i = 0; i < totallyCreepers.Count; i++)
             {
-                consoleOutput += "\n" + totallyBacteria[i] + "\t\t" + totallyCreepers[i];
-                valuesForParsing.Add(new List<object> { totallyBacteria[i], totallyCreepers[i] });
+                consoleOutput += "\n" + i + "\t\t" + totallyBacteria[i] + "\t\t" + totallyCreepers[i];
+                valuesForParsing.Add(new List<object> { i, totallyBacteria[i], totallyCreepers[i]});
             }
 
             Console.WriteLine(consoleOutput);

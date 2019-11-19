@@ -126,20 +126,17 @@ namespace aLife
             int bestXPos, bestYPos; //współrzędne komórki z największą liczbą bakterii
             CelluleLocation celluleWithHighestBactNum;
 
-            // a) jeżeli pełzacz ma wystarczającą ilość energii to rodzi co najmnej jednego nowego pełzacza,
-            // i jego energia jest zmniejszana o CREEPER_ENERGY_PRO_LIFE na każdego urodzonego pełzacza
-            int bornCreepersNum = 0;
-            while (creeperHasEnoughEnergyToMakeNewCreeper() && bornCreepersNum < (Init.MAX_CREEPER_NUM_BORN_PER_TACK - 1))
-            {
-                currentCellule.addCreeper(new Creeper(xPos, yPos));
-                reduceCreeperEnergy(Init.CREEPER_ENERGY_PRO_LIFE);
-                bornCreepersNum++;
-            }
-
             if (creeperHasEnoughEnergyToMakeNewCreeper())
             {
-                currentCellule.addCreeper(new Creeper(xPos, yPos));
-                reduceCreeperEnergy(Init.CREEPER_ENERGY_PRO_LIFE);
+                // a) jeżeli pełzacz ma wystarczającą ilość energii to rodzi co najmnej jednego nowego pełzacza,
+                // i jego energia jest zmniejszana o CREEPER_ENERGY_PRO_LIFE na każdego urodzonego pełzacza
+                int bornCreepersNum = 0;
+                while (creeperHasEnoughEnergyToMakeNewCreeper() && bornCreepersNum <= (Init.MAX_CREEPER_NUM_BORN_PER_TACK - 1))
+                {
+                    currentCellule.addCreeper(new Creeper(xPos, yPos));
+                    reduceCreeperEnergy(Init.CREEPER_ENERGY_PRO_LIFE);
+                    bornCreepersNum++;
+                }
             }
             // b) jeżeli pełzacz nie ma wystarczającej ilości energii do urodzenia nowego pełzacza
             // to, jeżeli w komórce są bakterie, to je zjada (ale nie więcej niź MAX_BACT_EATEN_BY_CREEPER)
@@ -172,7 +169,7 @@ namespace aLife
                 {
                     if (creeperHasEnergy())
                     {
-                        celluleWithHighestBactNum = checkNewCellules(w, tempWorld); // <- c)
+                        celluleWithHighestBactNum = checkNewCellules(w, tempWorld);
                         bestXPos = celluleWithHighestBactNum.posX;
                         bestYPos = celluleWithHighestBactNum.posY;
                         if (bestXPos > -1 && bestYPos > -1)

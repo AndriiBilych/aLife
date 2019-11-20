@@ -12,35 +12,60 @@ namespace aLife
 {
     class Init
     {
-        public static int SIZE_WORLD = 10; //rozmiar świata - NIE ZMIENIAĆ
-        public static int NUM_TACT = 100; //całkowita liczba taktów
-        public static int VEW_NUM_TACT = 1; //co ile taktów wyświetla wyniki
-        public static int START_NUM_CREEPERS = 2000; //początkowa liczba pełzaczy
-        public static int START_NUM_BACT = 2000; //początkowa liczba bakterii
-        public static int CREEPER_ENERGY_PRO_LIFE = 1;  //ilość energii potrzebna do urodzenia nowego pełzacza
-        public static int CREEPER_INITIAL_ENERGY = 1; //zapas eneergii nowo urodzonego pełzacza
-        public static int CREEPER_ENERGY_RESERVE = 4; //rezerwa energii zostawiana podczas rodzenia nowego pełzacza
-                                                     //potrzebna do przetrwania, gdy jest mało pożywienia
-        public static int MAX_CREEPER_NUM_BORN_PER_TACK = 5; //maksymalna liczba pełzaczy rodzonych przez jednego
-                                                            //pełzacza w jednym takcie.
-                                                            // Liczba pełzaczy, które mogą się urodzić w jednym takcie jest ograniczona przez ilość energii pełzacza po
-                                                            // odjęciu CREEPER_ENERGY_RESERVE. Pełzacz nie może zgromadzić zbyt dużo energii, ponieważ gdy tylko
-                                                            // przekracza poziom energii równy CREEPER_ENERGY_PRO_LIFE + CREEPER_ENERGY_RESERVE w następnym takcie
-                                                            // rodzi co najmniej jednego pełzacza i jego poziom energii jest zmniejszany o CREEPER_ENERGY_PRO_LIFE
-                                                            // na każdego urodzonego pełzacza.
+        //rozmiar świata - NIE ZMIENIAĆ
+        public static int SIZE_WORLD = 10; 
 
-        public static int MAX_BACT_EATEN_BY_CREEPER = 15; //Maksymalna liczba bakterii zjadanych przez pełzacza
-                                                         //w jednym takcie
-        public static double BACT_MULTIPLICATION_RATE = 0.6;//0.8 //współczynnik rozmnażania bakterii - tyle nowych bakterii
-                                                            //powstaje z jednej backterii w każdym takcie.
-                                                            //MOŻE PRZYJMOWAĆ WARTOŚCI UŁAMKOWE.
-        public static double BACT_SPREAD_RATE = 0.4;//0.5 //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
-                                                    //DOPUSZCZALNY ZAKRES: od 0 do 1
-                                                    //Np. przy wsp. = 0.7, 70% zostaje w komórce,
-                                                    //w której się urodziła, a 30% przenosi się
-                                                    //do sąsiednich losowo wybranych
-        public static int BACT_NUM_LIMIT = 1000000; //graniczna liczba bakterii dla całego świata.
-                                                   //Po przekroczeniu tej liczby komórki umierają/koniec symulacji.
+        //całkowita liczba taktów
+        public static int NUM_TACT = 100; 
+
+        //co ile taktów wyświetla wyniki
+        public static int VEW_NUM_TACT = 10;
+
+        //początkowa liczba pełzaczy
+        public static int START_NUM_CREEPERS = 500;
+
+        //początkowa liczba bakterii
+        public static int START_NUM_BACT = 500;
+
+        //1  //ilość energii potrzebna do urodzenia nowego pełzacza
+        public static int CREEPER_ENERGY_PRO_LIFE = 1;
+
+        //1 //zapas eneergii nowo urodzonego pełzacza
+        public static int CREEPER_INITIAL_ENERGY = 1; 
+
+        //rezerwa energii zostawiana podczas rodzenia nowego pełzacza
+        //potrzebna do przetrwania, gdy jest mało pożywienia
+        public static int CREEPER_ENERGY_RESERVE = 4;
+
+//        //5   maksymalna liczba pełzaczy rodzonych przez jednego
+//                pełzacza w jednym takcie.
+//                Liczba pełzaczy, które mogą się urodzić w jednym takcie jest ograniczona przez ilość energii pełzacza po
+//                odjęciu CREEPER_ENERGY_RESERVE. Pełzacz nie może zgromadzić zbyt dużo energii, ponieważ gdy tylko
+//                przekracza poziom energii równy CREEPER_ENERGY_PRO_LIFE + CREEPER_ENERGY_RESERVE w następnym takcie
+//                rodzi co najmniej jednego pełzacza i jego poziom energii jest zmniejszany o CREEPER_ENERGY_PRO_LIFE
+//                na każdego urodzonego pełzacza. 
+                
+        public static int MAX_CREEPER_NUM_BORN_PER_TACK = 5;
+
+        //Maksymalna liczba bakterii zjadanych przez pełzacza
+        //w jednym takcie
+        public static int MAX_BACT_EATEN_BY_CREEPER = 12;
+
+        //0.8 //współczynnik rozmnażania bakterii - tyle nowych bakterii
+        //powstaje z jednej backterii w każdym takcie.
+        //MOŻE PRZYJMOWAĆ WARTOŚCI UŁAMKOWE.
+        public static double BACT_MULTIPLICATION_RATE = 1;
+
+        //0.5 //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
+            //DOPUSZCZALNY ZAKRES: od 0 do 1
+            //Np. przy wsp. = 0.7, 70% zostaje w komórce,
+            //w której się urodziła, a 30% przenosi się
+            //do sąsiednich losowo wybranych
+        public static double BACT_SPREAD_RATE = 0.2;
+
+        //graniczna liczba bakterii dla całego świata.
+            //Po przekroczeniu tej liczby komórki umierają/koniec symulacji.
+        public static int BACT_NUM_LIMIT = 1000000; 
 
         //lista modyfikatorów pozycji - w niej określamy, które miejsca (względem obecnego położenia)
         //mają być sprawdzane/uwzględniane przy przemieszczaniu się pełzaczy lub bakterii z obecnego położenia

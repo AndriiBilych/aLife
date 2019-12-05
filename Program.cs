@@ -49,12 +49,12 @@ namespace aLife
 
         //Maksymalna liczba bakterii zjadanych przez pełzacza
         //w jednym takcie
-        public static int MAX_BACT_EATEN_BY_CREEPER = 12;
+        public static int MAX_BACT_EATEN_BY_CREEPER = 18;
 
         //0.8 //współczynnik rozmnażania bakterii - tyle nowych bakterii
         //powstaje z jednej backterii w każdym takcie.
         //MOŻE PRZYJMOWAĆ WARTOŚCI UŁAMKOWE.
-        public static double BACT_MULTIPLICATION_RATE = 1;
+        public static double BACT_MULTIPLICATION_RATE = 1.2;
 
         //0.5 //współczynnik rozprzestrzeniania nowo urodzonych bakterii.
             //DOPUSZCZALNY ZAKRES: od 0 do 1
@@ -208,28 +208,6 @@ namespace aLife
             return values;
         }
 
-        //Test function
-        //static void ReadEntries()
-        //{
-        //    var range = $"{sheet}!A:F";
-        //    SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
-
-        //    var response = request.Execute();
-        //    IList<IList<object>> values = response.Values;
-        //    if (values != null && values.Count > 0)
-        //    {
-        //        foreach (var row in values)
-        //        {
-        //            // Print columns A to F, which correspond to indices 0 and 4.
-        //            Console.WriteLine("{0} | {1} | {2} | {3} | {4} | {5}", row[0], row[1], row[2], row[3], row[4], row[5]);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("No data found.");
-        //    }
-        //}
-
         static void CreateEntry(List<IList<object>> values, string sheetRange)
         {
             var range = $"{sheet}!" + sheetRange;
@@ -303,7 +281,8 @@ namespace aLife
 
             mainWorld.sowBacteries(Init.START_NUM_BACT);
             mainWorld.sowCreepers(Init.START_NUM_CREEPERS);
-            int numTact = 0, num, totalBactNum;
+            int numTact = 0, num, totalBactNum = 0, wait_num_tact_bacteria = 10, wait_num_tact_creepers = 10;
+            bool start_waitng_bacterias = false, start_waiting_creepers = false;
 
             DeleteEntry();
 
@@ -329,18 +308,42 @@ namespace aLife
 
                     if (totalBactNum > Init.BACT_NUM_LIMIT) prematureEndOfSimulation = true;
 
+                    if (numTact >= 50)
+                    {
+                        if (totalBactNum <= 200) start_waitng_bacterias = true;
+                        if (start_waitng_bacterias && wait_num_tact_bacteria != 0) wait_num_tact_bacteria--;
+                        if (wait_num_tact_bacteria == 0)
+                        {
+                            mainWorld.sowBacteries(Init.START_NUM_BACT);
+                            totallyBacteria[totallyBacteria.Count - 1] += Init.START_NUM_BACT;
+                            Console.WriteLine("BactAmount: " + totallyBacteria[totallyBacteria.Count - 1] + " Count: " + totallyBacteria.Count);
+                            Console.WriteLine("Got to if wait_num_bact");
+                            start_waiting_creepers = true;
+                        }
+                        if (start_waiting_creepers && wait_num_tact_creepers != 0) wait_num_tact_creepers--;
+                        if (wait_num_tact_creepers == 0)
+                        {
+                            mainWorld.sowCreepers(Init.START_NUM_CREEPERS);
+                            totallyCreepers[totallyCreepers.Count - 1] += Init.START_NUM_CREEPERS;
+                            Console.WriteLine("BactAmount: " +  totallyCreepers[totallyCreepers.Count - 1] + " Count: " + totallyCreepers.Count);
+                            Console.WriteLine("Got to if wait_num_tact_creepers");
+                        }
+                    }
+                    
                     num++;
                     numTact++;
                 }
+
+                
                 worldData += "Przebieg " + numTact + "\t\t" + "Bacteria | Creepers\n";
                 valuesForParsing.Add(new List<object> { "Przebieg " + numTact , "Bacteria | Creepers" });
                 valuesForParsing.AddRange(WorldData(mainWorld));
             }
 
-            Console.WriteLine(worldData);
+//            Console.WriteLine(worldData);
 
-            //Parsing runs
-            CreateEntry(valuesForParsing, "A:J");
+            //Parsing world
+//            CreateEntry(valuesForParsing, "A:J");
 
             valuesForParsing.Clear();
 
@@ -360,7 +363,9 @@ namespace aLife
 
             Console.WriteLine(consoleOutput);
 
-            CreateEntry(valuesForParsing, "K:L");
+            //Parsing total values
+//            CreateEntry(valuesForParsing, "A:C");
+            CreateEntry(valuesForParsing, "G:I");
 
             if (prematureEndOfSimulation)
             {

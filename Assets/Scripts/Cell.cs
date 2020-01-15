@@ -22,6 +22,8 @@ public class Cell
     public void AddBactNum(int num) => bacteria += num;
     public int CreepNum => creeps.Count;
     public void AddCreep(int creep) => creeps.Add(creep);
+    public List<int> Creeps => creeps;
+    public void AddCreepRange(List<int> creepsRange) => creeps.AddRange(creepsRange);
     public bool HasEnergy(int index) => creeps[index] > 0;
     private bool HasEnergyToReproduce(int index) => creeps[index] >= Init.CREEP_CREATION_ENERGY + Init.CREEP_ENERGY_RESERVE;
 
@@ -49,7 +51,7 @@ public class Cell
             Debug.LogError("WARNING - trying to remove creeper from a cell without any creepers! X: " + X + " Y: " + Y);
     }
     
-    public void HandleCreepsAction(WorldMap w)
+    public void HandleCreepsAction(World w, Cell[,] tempData)
     {
         /*Each tact a creeper executes one of 5 actions
          a) Birth of at least one creeper and losing energy
@@ -65,7 +67,7 @@ public class Cell
                 /*a) If creeper has enough energy, than creates at least one another creeper and his energy decreases
                  corresponding to CREEPER_ENERGY_PRO_LIFE per one created creeper*/
                 var bornCreepersNum = 0;
-                while (HasEnergyToReproduce(index) && bornCreepersNum <= Init.MAX_CREEP_NUM_BORN_PER_TACT)
+                while (HasEnergyToReproduce(index) && bornCreepersNum < Init.MAX_CREEP_NUM_BORN_PER_TACT)
                 {
                     creeps.Add(Init.CREEP_INITIAL_ENERGY);
                     creeps[index] -= Init.CREEP_CREATION_ENERGY;
@@ -105,7 +107,7 @@ public class Cell
                             creeps[index] -= Init.ENERGY_ON_MOVING;  
                             
                             // Move creeper to another cell
-                            w.CellsData(bestCell.X, bestCell.Y).AddCreep(creeps[index]);
+                            tempData[bestCell.X, bestCell.Y].AddCreep(creeps[index]);
                             RemoveCreep(index);
                         }
                         else
@@ -122,7 +124,7 @@ public class Cell
         }
     }
 
-    private Cell CheckNeighbourCells(WorldMap w)
+    private Cell CheckNeighbourCells(World w)
     {
         /*Check if neighbouring cells have any bacteria, if yes return cell with the highest number*/
         
@@ -137,7 +139,6 @@ public class Cell
             newX = X + neighbours[i].X;
             newY = Y + neighbours[i].Y;
             
-            //TODO: check if this executes
             if (newX >= 0 && newY >= 0 && newX < Init.WORLD_SIZE && newY < Init.WORLD_SIZE) 
                 if (w.CellsData(newX, newY).bacteria > 0)
                     if (w.CellsData(newX, newY).bacteria > best.Bacteria)
@@ -146,7 +147,7 @@ public class Cell
         return best;
     }
     
-    public void BactReproduction(WorldMap w)
+    public void BactReproduction(World w, Cell[,] tempData)
     {
         /*Newborn bacteria can't be eaten in the same tact, thus are stored in tempWorld.
          Thanks to this the simulation is more stable*/
@@ -163,16 +164,16 @@ public class Cell
             newBactStayingInCell = (int) (newBact * Init.BACT_STAY_RATE);
             
             // Keep newborn bacteria safe in separate cell
-            tempCell += newBactStayingInCell;
+            tempData[X, Y].bacteria += newBactStayingInCell;
 
             // Remaining bacteria that moves to new cells
             newBactMovingToNewCells = newBact - newBactStayingInCell;
 
-            GoToNewCells(w, tempCell, newBactMovingToNewCells);
+            GoToNewCells(tempData, newBactMovingToNewCells);
         }
     }
 
-    private void GoToNewCells(WorldMap w, int tempCell, int bactMovinToNewCells)
+    private void GoToNewCells(Cell[,] tempData, int bactMovinToNewCells)
     {
         // Stores bacteria in existent neighbours
         List<Cell> neighbours = new List<Cell>();
@@ -185,7 +186,6 @@ public class Cell
             newX = X + Init.Neighbours[i].X;
             newY = Y + Init.Neighbours[i].Y;
             
-            //TODO: check if this executes
             if (newX >= 0 && newY >= 0 && newX < Init.WORLD_SIZE && newY < Init.WORLD_SIZE) 
                 neighbours.Add(new Cell{X = newX, Y = newY});
         }
@@ -200,7 +200,7 @@ public class Cell
             {
                 // Random amount of bacteria which is added to neighbour cells
                 partBact = random.Next(0, bactMovinToNewCells);
-                w.CellsData( neighbours[index].X, neighbours[index].Y).AddBactNum(partBact);
+                tempData[ neighbours[index].X, neighbours[index].Y].AddBactNum(partBact);
 
                 // Subtract moved bacteria
                 bactMovinToNewCells -= partBact;
@@ -208,7 +208,7 @@ public class Cell
             else
             { 
                 // Add remaining bacteria
-                w.CellsData( neighbours[index].X, neighbours[index].Y).AddBactNum(bactMovinToNewCells);
+                tempData[neighbours[index].X, neighbours[index].Y].AddBactNum(bactMovinToNewCells);
 
                 bactMovinToNewCells = 0;
             }

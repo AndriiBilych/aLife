@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CurrentTact
   - NextTactButton
+  - World
   layers:
   - Default
   - TransparentFX

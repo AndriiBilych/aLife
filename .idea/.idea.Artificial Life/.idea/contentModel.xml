@@ -35,10 +35,11 @@
         </e>
         <e p="Scripts" t="Include">
           <e p="Cell.cs" t="Include" />
+          <e p="Controls.cs" t="Include" />
           <e p="Graph.cs" t="Include" />
           <e p="Init.cs" t="Include" />
-          <e p="Program.cs" t="Include" />
-          <e p="WorldMap.cs" t="Include" />
+          <e p="SimulationManager.cs" t="Include" />
+          <e p="World.cs" t="Include" />
         </e>
         <e p="TextMesh Pro" t="Include">
           <e p="Fonts" t="Include">
